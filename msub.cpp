@@ -7,7 +7,6 @@ MSub::MSub()
 {
     /* clear message list */
     msgs_.clear();
-    tw_ = nullptr;
     loop_ = nullptr;
     stop_ = true;
 }
@@ -17,9 +16,6 @@ MSub::~MSub()
 }
 int MSub::start()
 {
-    /* init timewheel */
-    tw_ = rk_tw_create(10, 1000, 10000);
-
     /* enable main loop */
     loop_ = new std::thread(&MSub::run, this);
     if (!loop_) {
@@ -33,8 +29,6 @@ void MSub::run()
 {
     stop_ = false;
     while (!stop_) {
-        /* check timeout */
-        rk_tw_check(tw_);
         /* todo: Determine sleep length by granularity */
         sleep(1);
     }
@@ -52,7 +46,6 @@ void MSub::stop()
         delete loop_;
         loop_ = nullptr;
     }
-    rk_tw_destroy(tw_);
 
     /* notify all messages */
     std::lock_guard<std::mutex> lock(mutex_);
@@ -67,10 +60,6 @@ void MSub::stop()
 int MSub::subscribe(Message &msg, uint32_t timeout)
 {
     /* add timer and push to list */
-    // std::function<int(void *)> timeout_cb =
-    //     std::bind(&MSub::handleTimeout, this, std::placeholders::_1);
-    // if (rk_tw_create_task(tw_, timeout, timeout_cb.target<int(void *)>(), &msg)
-    //     == 0) {
     {
         std::lock_guard<std::mutex> lock(mutex_);
         msgs_.push_back(&msg);
@@ -84,7 +73,6 @@ int MSub::subscribe(Message &msg, uint32_t timeout)
         msgs_.remove(&msg);
         return -1;
     }
-    // }
 }
 
 int MSub::notifyAll()

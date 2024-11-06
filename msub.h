@@ -7,16 +7,16 @@
 #include <mutex>
 #include <thread>
 
-#include "timer/rk-tw.h"
-
 namespace msub {
 
 class MSub;
 class Message
 {
     friend class MSub;
+
 public:
     virtual bool match() = 0;
+
 private:
     /* lock and cv */
     std::mutex mtx_;
@@ -71,7 +71,6 @@ private:
     void run();
     int handleTimeout(void *);
     std::list<Message *> msgs_;
-    rk_tw_t *tw_;
     std::thread *loop_;
     bool stop_;
     std::mutex mutex_;
