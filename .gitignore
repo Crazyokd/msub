@@ -1,0 +1,6 @@
+msub
+compile_commands.json
+*.o
+*.d
+*.so
+*.a
